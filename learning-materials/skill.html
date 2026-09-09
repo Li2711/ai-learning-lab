@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：Skill（技能）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5b6b80; --accent:#c2410c; --bg:#f7f9fc; --card:#ffffff; --line:#e3e9f2; --warn:#b45309; --ok:#047857; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; color:var(--ink); background:var(--bg); line-height:1.75; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 64px; }
+  header.page { border-bottom:3px solid var(--accent); padding-bottom:16px; margin-bottom:28px; }
+  .kicker { color:var(--accent); font-size:14px; letter-spacing:2px; font-weight:700; }
+  h1 { margin:6px 0 4px; font-size:32px; }
+  .meta { color:var(--sub); font-size:14px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 26px; margin-bottom:22px; }
+  h2 { font-size:20px; margin:0 0 12px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:16px; margin:18px 0 6px; }
+  .todo { background:#fef3c7; border:1px dashed var(--warn); border-radius:8px; padding:10px 14px; color:var(--warn); font-weight:600; }
+  .draft { color:var(--sub); }
+  ul,ol { padding-left:24px; }
+  li { margin:4px 0; }
+  code { background:#eef2f8; border-radius:4px; padding:1px 6px; font-size:14px; }
+  pre { background:#f0f4fa; border-radius:8px; padding:14px 18px; font-size:13.5px; overflow:auto; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; }
+  th,td { border:1px solid var(--line); padding:8px 12px; text-align:left; font-size:14px; }
+  th { background:#f0f4fa; }
+  .sources li { margin:8px 0; }
+  .checkdate { color:var(--ok); font-size:13px; }
+  details { margin:8px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<header class="page">
+  <div class="kicker">学习资料 · 概念 3/3</div>
+  <h1>Skill（技能）</h1>
+  <div class="meta">由项目级 Skill「concept-study-guide」生成草稿 · 人工核查与改写记录见文末 · 资料核查日期：2026-09-09</div>
+</header>
+
+<section id="goals">
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>能说出 Skill 的最小组成（一个文件夹 + 一个带 YAML 元数据的 SKILL.md）以及各元数据字段的作用。</li>
+    <li>能解释 Skill 的"渐进式加载"机制为什么能省上下文。</li>
+    <li>能自己动手为一件重复性任务设计一个可复用的 Skill，而不是每次都写一遍长提示词。</li>
+  </ol>
+</section>
+
+<section id="questions">
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>Skill 到底是什么？它和普通的长提示词、和系统提示有什么区别？</li>
+    <li>AI 是怎么"发现并加载"一个 Skill 的？（元数据 → 正文 → 附属资源的渐进过程）</li>
+    <li>为什么说 Skill 是"把个人工作流程沉淀为可复用资产"的方式？</li>
+    <li>一个 Skill 写得好不好，判断标准是什么？</li>
+  </ol>
+</section>
+
+<section id="personal">
+  <h2>三、个人解释</h2>
+  <p class="todo">【TODO：请用自己的话重写下面这段草稿，改写完成后删除此框并在此注明改写日期】</p>
+  <p class="draft">草稿：Skill 是给 AI 用的"作业手册"。它是一个放在约定目录里的文件夹，核心是一个 SKILL.md：开头几行 YAML 元数据（name、description）像书的封面和索引，让 AI 知道"这里有个什么技能、什么时候用"；正文则是完成任务的具体步骤、规则和注意事项。妙处在于平时只占几个 token 的元数据常驻上下文，正文只在任务匹配时才被加载——像图书馆的书平时在架上，要用才翻开。对个人来说，Skill 的价值是把"每次都要重新交代的经验"变成"写一次、处处可用"的资产，就像把老师傅的手艺写成操作规程。</p>
+</section>
+
+<section id="mechanism">
+  <h2>四、核心机制 / 组成</h2>
+  <h3>最小组成结构</h3>
+  <pre>my-skill/
+└── SKILL.md        ← 必需：YAML 元数据 + Markdown 正文
+（可选）scripts/     ← 可执行脚本
+（可选）references/  ← 详细参考文档
+（可选）assets/      ← 模板、素材文件</pre>
+  <h3>SKILL.md 的两段式结构</h3>
+  <pre>---
+name: concept-study-guide          ← 唯一标识（小写、连字符）
+description: 输入概念输出结构化学习资料… ← 决定 AI 何时启用本技能
+---
+
+# 正文：适用场景、输入、步骤、输出结构、自检…</pre>
+  <h3>渐进式加载（三层）</h3>
+  <table>
+    <tr><th>层级</th><th>何时进入上下文</th><th>占用 token</th></tr>
+    <tr><td>① 元数据（name + description）</td><td>会话开始就常驻</td><td>很小（几十）</td></tr>
+    <tr><td>② SKILL.md 正文</td><td>任务匹配 description 时加载</td><td>中</td></tr>
+    <tr><td>③ 附属文件（脚本/参考文档）</td><td>正文引用、需要时才读</td><td>按需</td></tr>
+  </table>
+  <p>这个机制解释了 Skill 与"把所有提示词都塞进系统提示"的区别：后者常驻占满上下文，前者按需取用。多个 Skill 的元数据可以共存，AI 依任务挑选加载。</p>
+</section>
+
+<section id="scenario">
+  <h2>五、具体应用场景：本仓库的 concept-study-guide</h2>
+  <p>本仓库 <code>.workbuddy/skills/concept-study-guide/SKILL.md</code> 就是一个正在运行的真实例子：</p>
+  <ol>
+    <li><strong>沉淀</strong>：把"怎么生成一份合格的概念学习资料"的经验写成固定流程——九节结构、来源核验规则、自检清单（见本仓库 Skill 文件）。</li>
+    <li><strong>触发</strong>：在 WorkBuddy 中说"用 concept-study-guide 学习 MCP"→ AI 匹配 description → 加载 SKILL.md 正文。</li>
+    <li><strong>执行</strong>：AI 按固定步骤检索来源 → 核验链接 → 按九节结构生成 <code>learning-materials/mcp.html</code> → 执行自检。</li>
+    <li><strong>复用</strong>：换任何新概念（如"RAG""微调"）重复步骤 2~4，产出格式一致、质量稳定的资料——这就是"可复用"的含义。本仓库的 agent / llm-context / skill 三份资料即由该 Skill 的流程生成。</li>
+  </ol>
+</section>
+
+<section id="boundary">
+  <h2>六、容易混淆的问题 / 使用边界</h2>
+  <h3>最易混淆：Skill vs 工具（Tool）vs MCP</h3>
+  <table>
+    <tr><th></th><th>Skill</th><th>Tool / MCP</th></tr>
+    <tr><td>本质</td><td>知识：教 AI"怎么把事做好"的指令文档</td><td>能力：让 AI"能做某事"的接口（执行代码、调 API）</td></tr>
+    <tr><td>形态</td><td>文件夹 + Markdown，无代码也能写</td><td>函数 / 服务器 / API</td></tr>
+    <tr><td>类比</td><td>操作手册、菜谱</td><td>厨具、水电网</td></tr>
+  </table>
+  <h3>常见误解</h3>
+  <ul>
+    <li><strong>"Skill 是代码插件"</strong>：不一定是。最小 Skill 纯 Markdown 就能工作；脚本是可选增强。</li>
+    <li><strong>"description 随便写"</strong>：错。description 是 AI 决定"何时启用本技能"的唯一依据，写得含糊会导致该用时不用、不该用时乱触发。</li>
+  </ul>
+  <h3>使用边界</h3>
+  <ul>
+    <li><strong>一次性任务不值得写 Skill</strong>：只有可重复、有稳定流程的任务才值得沉淀；写 Skill 本身有成本。</li>
+    <li><strong>Skill 不是万能知识库</strong>：它提供流程和规范，不替代模型的基础知识，更不保证事实准确——这正是本 Skill 强制"来源核验 + 人工核查"的原因。</li>
+  </ul>
+</section>
+
+<section id="quiz">
+  <h2>七、自测问题</h2>
+  <details><summary>题 1（概念辨析）：把"周报生成流程"同时做成了一段长系统提示和一个 Skill，后者有什么好处？</summary>
+    <p>参考要点：① 省上下文——平时只有几十 token 的元数据常驻，正文按需加载；② 可复用可分享——独立文件夹可直接复制给他人或放进版本库；③ 可维护——改流程只动一个文件，不必重写系统提示。</p></details>
+  <details><summary>题 2（应用）：你的 Skill 总是不被 AI 主动触发，最可能的原因是什么？怎么改？</summary>
+    <p>参考要点：description 写得含糊或没写明触发场景。应把"做什么 + 何时用"写具体，包含用户会说出的关键词（如"生成概念学习资料""学习 XX 概念"）。</p></details>
+  <details><summary>题 3（边界）：什么情况下不该把经验写成 Skill，直接用临时提示词更好？</summary>
+    <p>参考要点：任务一次性、流程还在频繁试错、经验尚未稳定。Skill 适合沉淀已验证的稳定流程；过早固化会把试错成本写进文档，反而难以维护。</p></details>
+</section>
+
+<section id="sources">
+  <h2>八、参考来源（均已实际访问核验）</h2>
+  <ul class="sources">
+    <li>Anthropic（工程博客），《Equipping agents for the real world with Agent Skills》 — <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+    <li>Anthropic 官方 GitHub 仓库 <code>anthropics/skills</code>（含 Agent Skills 规范与模板，SKILL.md 结构与元数据字段说明见其 README） — <a href="https://github.com/anthropics/skills">github.com/anthropics/skills</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+    <li>Anthropic 支持中心，《What are skills?》 — <a href="https://support.claude.com/en/articles/12512176-what-are-skills">support.claude.com/en/articles/12512176-what-are-skills</a> · <span class="checkdate">核查日期：2026-09-09 ✓（经由 anthropics/skills README 确认链接）</span></li>
+  </ul>
+</section>
+
+<section id="review-log">
+  <h2>九、人工核查记录</h2>
+  <ul>
+    <li>"SKILL.md 仅需 name 与 description 两个必填字段"已对照 anthropics/skills 仓库 README 中的模板原文确认。</li>
+    <li>渐进式加载三层结构的表述对照 Anthropic 工程博客原文确认。</li>
+    <li>个人解释节为 AI 草稿，已标注 TODO，等待本人用自己的话重写。</li>
+    <li>【TODO：你自己核查后，在这里补充一条你验证或修改过的内容】</li>
+  </ul>
+</section>
+</main>
+</body>
+</html>

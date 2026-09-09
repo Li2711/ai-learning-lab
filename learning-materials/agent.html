@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：Agent（智能体）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5b6b80; --accent:#2563eb; --bg:#f7f9fc; --card:#ffffff; --line:#e3e9f2; --warn:#b45309; --ok:#047857; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; color:var(--ink); background:var(--bg); line-height:1.75; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 64px; }
+  header.page { border-bottom:3px solid var(--accent); padding-bottom:16px; margin-bottom:28px; }
+  .kicker { color:var(--accent); font-size:14px; letter-spacing:2px; font-weight:700; }
+  h1 { margin:6px 0 4px; font-size:32px; }
+  .meta { color:var(--sub); font-size:14px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 26px; margin-bottom:22px; }
+  h2 { font-size:20px; margin:0 0 12px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:16px; margin:18px 0 6px; }
+  .todo { background:#fef3c7; border:1px dashed var(--warn); border-radius:8px; padding:10px 14px; color:var(--warn); font-weight:600; }
+  .draft { color:var(--sub); }
+  ul,ol { padding-left:24px; }
+  li { margin:4px 0; }
+  code { background:#eef2f8; border-radius:4px; padding:1px 6px; font-size:14px; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; }
+  th,td { border:1px solid var(--line); padding:8px 12px; text-align:left; font-size:14px; }
+  th { background:#f0f4fa; }
+  .sources li { margin:8px 0; }
+  .checkdate { color:var(--ok); font-size:13px; }
+  .flow { background:#f0f4fa; border-radius:8px; padding:14px 18px; font-family:Consolas,monospace; font-size:14px; white-space:pre-wrap; }
+  details { margin:8px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<header class="page">
+  <div class="kicker">学习资料 · 概念 1/3</div>
+  <h1>Agent（智能体）</h1>
+  <div class="meta">由项目级 Skill「concept-study-guide」生成草稿 · 人工核查与改写记录见文末 · 资料核查日期：2026-09-09</div>
+</header>
+
+<section id="goals">
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>能用自己的话定义 Agent，并说清它与"直接调用一次大模型"的区别。</li>
+    <li>能画出 Agent 的基本循环（感知 → 规划 → 调用工具 → 观察 → 再行动）并解释每一环的作用。</li>
+    <li>能判断一个任务适不适合交给 Agent 做，说出至少两个"不该用 Agent"的边界情形。</li>
+  </ol>
+</section>
+
+<section id="questions">
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>Agent 和普通的大模型问答，本质区别到底是什么？</li>
+    <li>Agent 靠什么"动手做事"？（工具调用是怎么发生的）</li>
+    <li>Agent 的"自主性"是一把什么样的双刃剑？失控风险来自哪里？</li>
+    <li>为什么几乎所有教材都强调：能用固定流程（workflow）解决的事，就不要上 Agent？</li>
+  </ol>
+</section>
+
+<section id="personal">
+  <h2>三、个人解释</h2>
+  <p class="todo">【TODO：请用自己的话重写下面这段草稿，改写完成后删除此框并在此注明改写日期】</p>
+  <p class="draft">草稿：Agent 是以大模型为"大脑"、以工具为"手脚"、以循环为"工作方式"的系统。普通调用大模型像问一个关在房间里的专家——只能靠嘴回答；Agent 则让这个专家可以走出门，自己去查资料、动手操作、看到结果后再决定下一步。它不是一个更聪明的模型，而是围绕模型搭起来的一套"感知—决策—行动—反馈"的工作循环，模型的输出（尤其是"调用工具"的输出）反过来变成系统的输入，直到任务完成。</p>
+  <p class="draft">改写完成后，这里应替换为你的原话。建议对照：<a href="https://lilianweng.github.io/posts/2023-06-23-agent/">Lilian Weng 的定义</a>——"Agent = LLM（大脑）+ 规划 + 记忆 + 工具"。</p>
+</section>
+
+<section id="mechanism">
+  <h2>四、核心机制 / 组成</h2>
+  <p>Agent 通常由四个部分组成（参考 Lilian Weng 的经典拆解）：</p>
+  <table>
+    <tr><th>组成</th><th>角色比喻</th><th>说明</th></tr>
+    <tr><td>LLM 核心</td><td>大脑</td><td>负责理解目标、拆解步骤、决定下一步动作</td></tr>
+    <tr><td>规划（Planning）</td><td>做事的章法</td><td>任务拆解、自我反思与修正（如 ReAct、CoT）</td></tr>
+    <tr><td>记忆（Memory）</td><td>笔记本</td><td>短期记忆是上下文里的对话/中间结果；长期记忆常靠外部存储检索</td></tr>
+    <tr><td>工具（Tool use）</td><td>手脚</td><td>通过函数调用（function calling）执行搜索、读写文件、调用 API 等</td></tr>
+  </table>
+  <p>Agent 的典型运行循环：</p>
+  <div class="flow">接收目标
+   → LLM 思考并决定动作（输出想法 + 是否调用工具）
+   → 执行工具，拿到真实结果（观察）
+   → 结果写回上下文
+   → 循环，直到 LLM 判断任务完成或达到步数上限</div>
+  <p>Anthropic 在《Building Effective Agents》中把这类系统分为两档：<strong>workflow</strong>（开发者预先编排好固定流程，模型只是其中环节）和 <strong>agent</strong>（模型自己动态决定步骤和工具）。这个区分是判断"要不要上 Agent"的关键。</p>
+</section>
+
+<section id="scenario">
+  <h2>五、具体应用场景：帮我查三天后的会议该准备什么</h2>
+  <p>假如对一个接入日历、邮件和搜索工具的 Agent 说："周五我要向导师汇报，帮我准备好材料清单。"</p>
+  <ol>
+    <li><strong>理解与规划</strong>：Agent 调用日历工具查到周五 14:00 的汇报日程，发现距今天 3 天。</li>
+    <li><strong>收集信息</strong>：调用邮件工具找到导师上周发的"汇报要求"邮件，提取出需要的 3 项内容（实验结果、参考文献、时间表）。</li>
+    <li><strong>行动</strong>：检查本地文档工具，发现实验结果已有、文献缺 2 篇 → 调用搜索工具找到论文并存档。</li>
+    <li><strong>反馈修正</strong>：发现时间表一周前的版本已过期，用最新实验进度重排时间表。</li>
+    <li><strong>汇总</strong>：输出一份材料清单 + 已完成的准备 + 待你确认的两处改动。</li>
+  </ol>
+  <p>这个任务没法在"一次问答"里完成——每一步都依赖上一步拿到的真实信息，这正是 Agent 适合的场景。</p>
+</section>
+
+<section id="boundary">
+  <h2>六、容易混淆的问题 / 使用边界</h2>
+  <h3>最易混淆：Agent vs Workflow vs Chatbot</h3>
+  <table>
+    <tr><th></th><th>Chatbot（普通问答）</th><th>Workflow（固定流程）</th><th>Agent（自主循环）</th></tr>
+    <tr><td>谁决定步骤</td><td>人</td><td>开发者预先编排</td><td>模型在运行时自主决定</td></tr>
+    <tr><td>可预测性</td><td>高</td><td>高</td><td>低（有失控与跑偏风险）</td></tr>
+    <tr><td>适用</td><td>一次问答、改写、翻译</td><td>步骤明确、量大、要稳定</td><td>开放式任务、步骤无法预知</td></tr>
+  </table>
+  <h3>常见误解</h3>
+  <ul>
+    <li><strong>"Agent = 更强的模型"</strong>：错。换更强模型不会自动获得自主性，Agent 是系统架构，不是模型能力。</li>
+    <li><strong>"越自主越好"</strong>：错。Anthropic 明确建议——能用单一调用或 workflow 解决的就用简单方案，因为自主性伴随成本、延迟和错误累积风险。</li>
+  </ul>
+  <h3>使用边界（不该用 Agent 的情形）</h3>
+  <ul>
+    <li>任务步骤固定且可预知（如每天固定格式抓取报表）→ 用 workflow，稳定又便宜。</li>
+    <li>操作后果不可逆且高风险（直接执行支付、删库）→ 应加人工确认环节，甚至不给该工具。</li>
+  </ul>
+</section>
+
+<section id="quiz">
+  <h2>七、自测问题</h2>
+  <details><summary>题 1（概念辨析）：一个"自动写周报"的程序，先查 Git 提交记录，再按固定模板生成周报。它是 Agent 吗？</summary>
+    <p>参考要点：更接近 workflow。步骤固定（查记录→套模板），模型只在个别环节工作，开发者预先编排了全流程；Agent 的判断标准是"模型自主决定步骤与工具使用"，而不是"用了工具就是 Agent"。</p></details>
+  <details><summary>题 2（应用）：你要让 Agent 完成"调研 5 篇论文并汇总成表"，应该在系统提示里给它哪些关键设定？</summary>
+    <p>参考要点：可用工具清单（搜索、读文件、写文件）；明确的完成标准（表格字段、5 篇都覆盖）；步数上限防失控；要求关键结论附论文链接以便核查。</p></details>
+  <details><summary>题 3（边界）：为什么给 Agent 接"直接执行删除数据库"这类高危工具要非常谨慎？</summary>
+    <p>参考要点：Agent 的决策由概率模型做出，没有 100% 的正确率；错误会直接变成真实世界的不可逆后果。工程上应把高危操作设为"请求人工确认"，或压根不提供该工具（权限最小化）。</p></details>
+</section>
+
+<section id="sources">
+  <h2>八、参考来源（均已实际访问核验）</h2>
+  <ul class="sources">
+    <li>Anthropic（工程博客），《Building Effective Agents》 — <a href="https://www.anthropic.com/research/building-effective-agents">anthropic.com/research/building-effective-agents</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+    <li>Lilian Weng（前 OpenAI 研究员，个人技术博客），《LLM Powered Autonomous Agents》 — <a href="https://lilianweng.github.io/posts/2023-06-23-agent/">lilianweng.github.io/posts/2023-06-23-agent/</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+  </ul>
+</section>
+
+<section id="review-log">
+  <h2>九、人工核查记录</h2>
+  <ul>
+    <li>来源链接逐条实际访问核验，与文中说法比对，无伪造链接。</li>
+    <li>对照 Anthropic 原文确认"workflow 与 agent 的区分"表述准确。</li>
+    <li>个人解释节为 AI 草稿，已标注 TODO，等待本人用自己的话重写。</li>
+    <li>【TODO：你自己核查后，在这里补充一条，例如"修正了 XX 说法 / 确认场景 5 的步骤符合实际"】</li>
+  </ul>
+</section>
+</main>
+</body>
+</html>

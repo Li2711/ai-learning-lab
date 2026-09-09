@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习资料：大模型的上下文（Context）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5b6b80; --accent:#0d9488; --bg:#f7f9fc; --card:#ffffff; --line:#e3e9f2; --warn:#b45309; --ok:#047857; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; color:var(--ink); background:var(--bg); line-height:1.75; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 64px; }
+  header.page { border-bottom:3px solid var(--accent); padding-bottom:16px; margin-bottom:28px; }
+  .kicker { color:var(--accent); font-size:14px; letter-spacing:2px; font-weight:700; }
+  h1 { margin:6px 0 4px; font-size:32px; }
+  .meta { color:var(--sub); font-size:14px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 26px; margin-bottom:22px; }
+  h2 { font-size:20px; margin:0 0 12px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:16px; margin:18px 0 6px; }
+  .todo { background:#fef3c7; border:1px dashed var(--warn); border-radius:8px; padding:10px 14px; color:var(--warn); font-weight:600; }
+  .draft { color:var(--sub); }
+  ul,ol { padding-left:24px; }
+  li { margin:4px 0; }
+  code { background:#eef2f8; border-radius:4px; padding:1px 6px; font-size:14px; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; }
+  th,td { border:1px solid var(--line); padding:8px 12px; text-align:left; font-size:14px; }
+  th { background:#f0f4fa; }
+  .sources li { margin:8px 0; }
+  .checkdate { color:var(--ok); font-size:13px; }
+  .flow { background:#f0f4fa; border-radius:8px; padding:14px 18px; font-family:Consolas,monospace; font-size:14px; white-space:pre-wrap; }
+  details { margin:8px 0; }
+  summary { cursor:pointer; font-weight:600; color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<header class="page">
+  <div class="kicker">学习资料 · 概念 2/3</div>
+  <h1>大模型的上下文（Context）</h1>
+  <div class="meta">由项目级 Skill「concept-study-guide」生成草稿 · 人工核查与改写记录见文末 · 资料核查日期：2026-09-09</div>
+</header>
+
+<section id="goals">
+  <h2>一、学习目标</h2>
+  <ol>
+    <li>能说清"上下文"由哪些部分组成、上下文窗口是什么、以什么为单位计量。</li>
+    <li>能解释"模型没有记忆"这个说法为什么既对又不完全对。</li>
+    <li>能说出至少两个长上下文的真实局限（如"lost in the middle"），并据此改进自己使用 AI 的方式。</li>
+  </ol>
+</section>
+
+<section id="questions">
+  <h2>二、核心问题</h2>
+  <ol>
+    <li>模型每次回答时"能看到"的到底是什么？上下文窗口里装了哪些东西？</li>
+    <li>为什么对话开头的约定，聊到后面会被"忘掉"？</li>
+    <li>上下文越长越好吗？长上下文有哪些代价和陷阱？</li>
+    <li>"上下文工程（context engineering）"为什么正在取代"提示词工程"成为更准确的叫法？</li>
+  </ol>
+</section>
+
+<section id="personal">
+  <h2>三、个人解释</h2>
+  <p class="todo">【TODO：请用自己的话重写下面这段草稿，改写完成后删除此框并在此注明改写日期】</p>
+  <p class="draft">草稿：上下文就是模型在生成回答那一刻"摊在桌面上"的全部材料——系统提示、当前对话历史、工具返回的结果、检索到的文档等，全部拼成一个文本序列送给模型。上下文窗口是这份材料的空间上限，以 token 计量。最关键的一点：模型本身没有记忆，"多轮对话"其实是把前面的聊天记录反复重新塞给它。所以它"记得"还是"忘了"，取决于你有没有把相关信息放进这一次的窗口里。</p>
+</section>
+
+<section id="mechanism">
+  <h2>四、核心机制 / 组成</h2>
+  <h3>上下文窗口里通常装着什么</h3>
+  <div class="flow">┌────────────── 上下文窗口（以 token 计数）──────────────┐
+│ ① 系统提示（System Prompt）—— 角色设定、规则、Skill 指令    │
+│ ② 对话历史 —— 用户和模型历往的消息（多轮对话的本质）        │
+│ ③ 工具结果 / 检索文档（RAG）—— 外部世界的真实信息          │
+│ ④ 当前用户消息 —— 本次要处理的新输入                       │
+│ ⑤ 模型即将生成的回答（预留输出空间）                       │
+└──────────────────────────────────────────────┘</div>
+  <h3>关键机制</h3>
+  <ul>
+    <li><strong>Token 计量</strong>：文本被切成 token（约 1 个汉字 ≈ 1~2 个 token），窗口大小如 128K、200K 指可容纳的 token 总量，输入+输出共享这个额度。</li>
+    <li><strong>无状态调用</strong>：每次请求都是独立的，"记忆"完全靠把历史重放进上下文实现；对话过长时被截断或压缩，早期的约定就丢了。</li>
+    <li><strong>注意力并非均匀</strong>：论文《Lost in the Middle》用实验证明——关键信息放在上下文的开头或结尾时模型表现最好，埋在长上下文中间时性能明显下降，即使是很长的上下文模型也一样。</li>
+  </ul>
+</section>
+
+<section id="scenario">
+  <h2>五、具体应用场景：为什么"改新文件"之前要先开新会话</h2>
+  <p>场景：我先用 AI 调试了一个上午的程序 A，对话里满是报错和废弃方案。下午想让它帮我写作业报告 B。</p>
+  <ol>
+    <li><strong>问题出现</strong>：在同一个会话里直接问"帮我写报告 B"，模型写出来的东西带有一上午调试的"口音"——因为它还背着几千 token 的旧上下文（系统提示、旧代码、旧结论），注意力被无关信息稀释。</li>
+    <li><strong>改进做法</strong>：开新会话，只把写 B 需要的材料（作业要求、自己的代码要点）一次性放进上下文，相当于做了一次"上下文工程"：精心决定窗口里装什么、不装什么。</li>
+    <li><strong>对应到 Agent</strong>：Agent 的每一步工具结果都会写进上下文，任务越长窗口越满，所以成熟 Agent 系统要做"压缩 / 摘要 / 把长结果写入外部文件"等管理手段——这正是 Anthropic《Effective Context Engineering》强调的"上下文是 Agent 最稀缺的资源"。</li>
+  </ol>
+</section>
+
+<section id="boundary">
+  <h2>六、容易混淆的问题 / 使用边界</h2>
+  <h3>最易混淆的两组概念</h3>
+  <table>
+    <tr><th>易混淆</th><th>区分</th></tr>
+    <tr><td>上下文窗口 vs 训练数据</td><td>窗口是"这次请求能看的材料"，随对话变化；训练数据是"模型出厂前学过的知识"，固定不变。模型答不出最新事件，常是因为信息不在窗口里，而不是模型"不会"。</td></tr>
+    <tr><td>上下文 vs 记忆</td><td>严格说模型没有跨请求记忆；产品里的"记忆"功能（如保存偏好）本质是把历史信息检索出来、重新放进上下文的工程机制。</td></tr>
+    <tr><td>上下文工程 vs 提示词工程</td><td>提示词工程偏向"怎么措辞一句话"；上下文工程是"决定窗口里放哪些信息"（提示、示例、检索结果、工具输出、状态历史），覆盖面更大，也更贴近实际系统开发。</td></tr>
+  </table>
+  <h3>使用边界</h3>
+  <ul>
+    <li><strong>窗口大 ≠ 能用好</strong>：不要因为支持 200K 就把所有资料一股脑塞进去——"lost in the middle"效应说明中间位置的信息利用率会下降，塞太多还提高成本和延迟。</li>
+    <li><strong>窗口内 ≠ 都准确</strong>：放进上下文的错误信息会被模型当作事实采信（垃圾进、垃圾出），核查信息质量仍不可省略。</li>
+  </ul>
+</section>
+
+<section id="quiz">
+  <h2>七、自测问题</h2>
+  <details><summary>题 1（概念辨析）：用户说"模型总是忘了我第一句话的要求"。从上下文机制出发，给出两种可能原因。</summary>
+    <p>参考要点：① 对话太长，早期消息被截断或压缩，不在当前窗口里；② 信息还在窗口里但处于"中间位置"，注意力利用不充分（lost in the middle）。对策：把关键要求写进系统提示或每次消息末尾（位置效应），或开新会话重建精简上下文。</p></details>
+  <details><summary>题 2（应用）：你要让 AI 基于 3 份 PDF 写综述，怎么设计上下文能提高准确率？</summary>
+    <p>参考要点：不整本塞入，先用检索（RAG）定位相关段落；关键结论放开头/结尾；给模型"只依据所给材料作答、引用出处"的约束，便于事后核查。</p></details>
+  <details><summary>题 3（边界）：为什么"上下文里提供了 10 篇文档"不等于"模型能准确回答所有相关问题"？</summary>
+    <p>参考要点：长上下文存在位置衰减（lost in the middle）；token 占满会挤掉输出空间并增加成本；无关信息会干扰判断。信息要"精而准"地放入窗口，而不是"多而全"。</p></details>
+</section>
+
+<section id="sources">
+  <h2>八、参考来源（均已实际访问核验）</h2>
+  <ul class="sources">
+    <li>Anthropic（工程博客），《Effective context engineering for AI agents》 — <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">anthropic.com/engineering/effective-context-engineering-for-ai-agents</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+    <li>Nelson F. Liu 等（Stanford），论文《Lost in the Middle: How Language Models Use Long Contexts》，TACL 2023 — <a href="https://arxiv.org/abs/2307.03172">arxiv.org/abs/2307.03172</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+    <li>Simon Willison（技术博客），《Context engineering》 — <a href="https://simonwillison.net/2025/Jun/27/context-engineering/">simonwillison.net/2025/Jun/27/context-engineering/</a> · <span class="checkdate">核查日期：2026-09-09 ✓</span></li>
+  </ul>
+</section>
+
+<section id="review-log">
+  <h2>九、人工核查记录</h2>
+  <ul>
+    <li>"Lost in the Middle"的结论已对照论文摘要原文确认（性能在信息位于开头/结尾时最高，位于中间时明显下降）。</li>
+    <li>"上下文工程取代提示词工程"的说法来自 Simon Willison 博客引用的 Karpathy 与 Tobi Lutke 观点，已核对原文。</li>
+    <li>个人解释节为 AI 草稿，已标注 TODO，等待本人用自己的话重写。</li>
+    <li>【TODO：你自己核查后，在这里补充一条你验证或修改过的内容】</li>
+  </ul>
+</section>
+</main>
+</body>
+</html>
