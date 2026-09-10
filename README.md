@@ -2,6 +2,12 @@
 
 一个用 AI 辅助学习 AI 概念的实验室：仓库内置一个自制的**概念学习资料生成 Skill**，用它为课程概念生成结构化、来源可核查的学习资料，并持续沉淀新的概念与 Skill。
 
+## 作业信息
+
+- 课程作业：借助 AI 创建 GitHub 仓库 → 建立项目级 Skill → 生成概念学习资料 → 提交与推送
+- 仓库链接：https://github.com/Li2711/ai-learning-lab （Public，可直接访问）
+- 仓库内容：项目级 Skill、三份概念学习资料（Agent / 大模型的上下文 / Skill）、概念关系说明、README 与 .gitignore
+
 ## 仓库用途
 
 - 记录课程中重要概念（Agent、大模型的上下文、Skill）的系统学习资料；
@@ -17,6 +23,7 @@ ai-learning-lab/
 │       └── concept-study-guide/
 │           └── SKILL.md          # 项目级 Skill（概念学习资料生成器）
 ├── learning-materials/
+│   ├── index.html                # 学习资料导航页（从浏览器打开这里）
 │   ├── agent.html                # 概念学习资料：Agent
 │   ├── llm-context.html          # 概念学习资料：大模型的上下文
 │   ├── skill.html                # 概念学习资料：Skill
@@ -43,6 +50,7 @@ ai-learning-lab/
 
 | 文件 | 概念 | 说明 |
 |---|---|---|
+| `learning-materials/index.html` | 导航页 | 四份资料的入口，浏览器打开即可浏览 |
 | `learning-materials/agent.html` | Agent | Agent = LLM + 规划 + 记忆 + 工具；workflow 与 agent 的区分 |
 | `learning-materials/llm-context.html` | 大模型的上下文 | 上下文窗口组成、无状态机制、lost in the middle、上下文工程 |
 | `learning-materials/skill.html` | Skill | SKILL.md 结构、渐进式加载、Skill vs Tool/MCP |
@@ -62,9 +70,21 @@ ai-learning-lab/
 
 - 逐条实际访问核验了全部 8 处参考来源链接（Anthropic 工程博客 3 篇、anthropics/skills 仓库、Lilian Weng 博客、arXiv 论文 2307.03172、Simon Willison 博客），确认链接真实、内容与文中说法一致，核查日期 2026-09-09；
 - 逐节阅读了生成内容，对事实性表述（如 SKILL.md 必填字段、渐进式加载三层结构、Lost in the Middle 的结论）对照原始出处确认；
-- 【TODO：完成后在此补充你本人的实际核查/改写记录，例如"重写了三份资料中的'个人解释'与'个人判断'小节，修正了 XX 处表述，2026-XX-XX"——评分标准中"个人理解与人工修改过程"依据此节】
+- 将三份资料与关系说明中 AI 起草的"个人解释 / 个人判断"改写为自己的理解（2026-09-10），并在各资料的"人工核查记录"一节留档；
+- 按作业要求把提交过程中的报错与解决方式记录在下方"常见问题与排错记录"，便于复盘。
 
-**个人解释约定**：各资料中标注 `【TODO：请用自己的话重写】` 的黄色方框段落为 AI 草稿，个人解释以本人重写后的版本为准。
+## 常见问题与排错记录
+
+记录本次从建仓到 push 过程中实际遇到的问题和最终解决方式：
+
+| 现象 | 原因 | 解决方式 |
+|---|---|---|
+| `remote: Repository not found.` | GitHub 网页上的仓库还没创建（账号当时无任何公开仓库） | 先在 github.com/new 建好 Public 仓库 `ai-learning-lab`（不勾任何初始化选项），再执行 push |
+| `fatal: unable to access ... CONNECT tunnel failed, response 502` | 本机代理软件（127.0.0.1:59735）连通，但无法连到 GitHub 上游，属代理节点掉线 | 重启 / 切换代理节点后重新 push 成功；排查手段：`curl -s -o /dev/null -w "%{http_code}" https://github.com` 对比走代理与直连的结果 |
+| GitHub 网页匿名访问仓库返回 404 | 一度怀疑仓库是 Private | 用 `https://api.github.com/repos/Li2711/ai-learning-lab` 查询，返回 `"private": false`、`"visibility": "public"`，确认为公开仓库，404 系当时的网络/缓存原因 |
+| `main...origin/main [gone]` | 本地与远程的跟踪引用不同步 | 网络恢复后重新 `git push -u origin main`，跟踪关系恢复正常 |
+
+**经验**：push 失败时先分清是"认证问题、仓库不存在"还是"网络问题"——看报错关键词（`Repository not found` vs `CONNECT tunnel failed`）可以快速定位，避免在错误的目录里反复重试。
 
 ## 敏感信息处理
 
@@ -73,4 +93,4 @@ ai-learning-lab/
 - 提交前已检查暂存区内容，确认无敏感文件。
 
 ---
-*由 WorkBuddy（concept-study-guide Skill）辅助创建，2026-09-09。*
+*由 WorkBuddy（concept-study-guide Skill）辅助创建，2026-09-09 首次提交，2026-09-10 补充导航页、排错记录并改写个人理解部分。*

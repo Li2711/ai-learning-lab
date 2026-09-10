@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习资料导航 · ai-learning-lab</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5b6b80; --bg:#f7f9fc; --card:#ffffff; --line:#e3e9f2; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif; color:var(--ink); background:var(--bg); line-height:1.75; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 64px; }
+  header.page { border-bottom:3px solid #4f46e5; padding-bottom:18px; margin-bottom:30px; }
+  .kicker { color:#4f46e5; font-size:14px; letter-spacing:2px; font-weight:700; }
+  h1 { margin:6px 0 4px; font-size:30px; }
+  .meta { color:var(--sub); font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
+  a.card { display:block; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; transition:box-shadow .15s, transform .15s; }
+  a.card:hover { box-shadow:0 6px 18px rgba(26,35,50,.10); transform:translateY(-2px); }
+  .num { font-size:12px; font-weight:700; letter-spacing:1px; }
+  .card h2 { margin:8px 0 6px; font-size:19px; }
+  .card p { margin:0; color:var(--sub); font-size:14px; }
+  .c1 .num { color:#2563eb; } .c2 .num { color:#0d9488; } .c3 .num { color:#c2410c; } .c4 .num { color:#7c3aed; }
+  .note { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin-top:26px; font-size:14px; color:var(--sub); }
+  code { background:#eef2f8; border-radius:4px; padding:1px 6px; }
+</style>
+</head>
+<body>
+<main>
+<header class="page">
+  <div class="kicker">AI LEARNING LAB · 学习资料导航</div>
+  <h1>概念学习资料</h1>
+  <div class="meta">本页资料由项目级 Skill <code>concept-study-guide</code> 生成草稿，经人工核验来源并改写个人解释后定稿 · 最后更新 2026-09-10</div>
+</header>
+
+<div class="grid">
+  <a class="card c1" href="agent.html">
+    <div class="num">概念 1/3</div>
+    <h2>Agent（智能体）</h2>
+    <p>Agent 的组成与运行循环；workflow 与 agent 的分界；自主性的代价与使用边界。</p>
+  </a>
+  <a class="card c2" href="llm-context.html">
+    <div class="num">概念 2/3</div>
+    <h2>大模型的上下文</h2>
+    <p>上下文窗口装了什么；为什么模型"会忘"；lost in the middle；上下文工程。</p>
+  </a>
+  <a class="card c3" href="skill.html">
+    <div class="num">概念 3/3</div>
+    <h2>Skill（技能）</h2>
+    <p>SKILL.md 的结构与元数据；渐进式加载为何省上下文；Skill 与 Tool/MCP 的区别。</p>
+  </a>
+  <a class="card c4" href="concept-relationship.html">
+    <div class="num">概念关系</div>
+    <h2>上下文 × Agent × Skill</h2>
+    <p>三者的关系图与对照表：上下文如何影响 Agent 的工作，Skill 如何沉淀可复用知识。</p>
+  </a>
+</div>
+
+<div class="note">
+  <strong>关于这些资料：</strong>每份资料都包含学习目标、核心问题、个人解释、核心机制、应用场景、概念辨析、自测问题、可核查参考来源和人工核查记录九个部分。
+  参考来源均已逐条实际访问核验（核查日期 2026-09-09）。文字版关系说明见 <a href="concept-relationship.md">concept-relationship.md</a>（含 Mermaid 流程图）。
+</div>
+</main>
+</body>
+</html>
