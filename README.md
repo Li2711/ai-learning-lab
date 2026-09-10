@@ -8,6 +8,16 @@
 - 仓库链接：https://github.com/Li2711/ai-learning-lab （Public，可直接访问）
 - 仓库内容：项目级 Skill、三份概念学习资料（Agent / 大模型的上下文 / Skill）、概念关系说明、README 与 .gitignore
 
+## 如何在浏览器中查看学习资料
+
+> **提示**：在 GitHub 网页上直接点击 `agent.html` 等文件时，GitHub 显示的是**网页源代码**（`<div>`、`<style>` 这类标签），这是 GitHub 对代码文件的正常展示方式，**不是文件乱码或损坏**——文件的编码是正确的 UTF-8，中文完全正常。
+
+三种查看方式：
+
+1. **在线浏览（推荐）**：开启 GitHub Pages 后直接访问 <https://li2711.github.io/ai-learning-lab/> ，即为渲染好的网页。
+2. **本地查看**：`git clone https://github.com/Li2711/ai-learning-lab.git`（或点 Code → Download ZIP），双击 `learning-materials/index.html` 即可浏览。
+3. **看文字版**：`learning-materials/concept-relationship.md` 在 GitHub 上可直接正常阅读（Markdown 会被渲染）。
+
 ## 仓库用途
 
 - 记录课程中重要概念（Agent、大模型的上下文、Skill）的系统学习资料；
