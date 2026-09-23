@@ -39,9 +39,22 @@ ai-learning-lab/
 │   ├── skill.html                # 概念学习资料：Skill
 │   ├── concept-relationship.md   # 概念关系说明（文字 + 表格 + Mermaid 图）
 │   └── concept-relationship.html # 概念关系说明（可视化图）
+├── pypy/                         # Python 练习项目（个人学习用）
+│   ├── script/01.ipynb           # Jupyter 练习笔记
+│   ├── README.md
+│   └── .gitignore                # 排除 .venv 虚拟环境
+├── index.html                    # 仓库入口页（GitHub Pages 用）
 ├── README.md
 └── .gitignore
 ```
+
+## pypy 子目录说明
+
+`pypy/` 是与课程作业无关的个人 Python 练习项目，作为子目录并入本仓库。
+
+- 项目原本使用本地虚拟环境 `.venv`（约 109MB、9500+ 个文件），**已在 `pypy/.gitignore` 中排除**，不入库；
+- 克隆后如需运行，请在 `pypy/` 下自行创建虚拟环境：`python -m venv .venv`，再按需 `pip install`；
+- 目前 `pypy/script/01.ipynb` 为空笔记本，后续练习内容会持续提交到该目录。
 
 ## Skill 说明
 
